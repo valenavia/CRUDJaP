@@ -1,10 +1,3 @@
-inputPostNombre.value;
-inputPostApellido.value;
-inputPutId.value;
-inputDelete.value;
-inputPutNombre.value;
-inputPutApellido.value;
-
 //variables traidas por id
 const urlUsers = "https://65451be45a0b4b04436da443.mockapi.io/users/";
 const buscarBtn = document.getElementById("btnGet1");
@@ -12,19 +5,26 @@ const agregarBtn = document.getElementById("btnPost");
 const modificarBtn = document.getElementById("btnPut");
 const eliminarBtn = document.getElementById("btnDelete");
 const resultado = document.getElementById("results");
-const modal = document.getElementById("dataModal");
 const guardarCambiosBtn = document.getElementById("btnSendChanges");
 const alertaForm = document.getElementById("alert-error");
 
+const modal = new bootstrap.Modal("#dataModal");
+
 function alertaError() {
+  alertaForm.classList.add("show");
+
   setTimeout(() => {
-    alertaForm.classList.add("show");
-  }, 7000);
+    alertaForm.classList.remove("show");
+  }, 3000);
 }
 
 async function mostrarObjetos(id) {
   try {
     const resMostrar = await fetch(urlUsers + id);
+    if (!resMostrar.ok) {
+      throw new Error("Something went wrong.");
+    }
+
     const data = await resMostrar.json();
 
     resultado.innerHTML = "";
@@ -70,17 +70,24 @@ buscarBtn.addEventListener("click", async () => {
 
 //método post
 agregarBtn.addEventListener("click", async () => {
-  const resAgregar = await fetch(urlUsers, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: inputPostNombre.value,
-      lastname: inputPostApellido.value,
-    }),
-  });
-  mostrarObjetos("");
+  try {
+    const resAgregar = await fetch(urlUsers, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: inputPostNombre.value,
+        lastname: inputPostApellido.value,
+      }),
+    });
+    if (!resAgregar.ok) {
+      throw new Error("Something went wrong");
+    }
+    mostrarObjetos("");
+  } catch {
+    alertaError();
+  }
 });
 
 //verificación del campo completo para poder modificar
@@ -89,12 +96,21 @@ inputPutId.addEventListener("input", () => {
 });
 
 //evento en el botón que abre modal con los valores precargados
-modificarBtn.addEventListener("click", async () => {
-  const resMostrar = await fetch(urlUsers + inputPutId.value);
-  const data = await resMostrar.json();
+modificarBtn.addEventListener("click", async (e) => {
+  try {
+    const resMostrar = await fetch(urlUsers + inputPutId.value);
+    const data = await resMostrar.json();
+    if (!resMostrar.ok) {
+      throw new Error("Something went wrong.");
+    }
 
-  inputPutNombre.value = data.name;
-  inputPutApellido.value = data.lastname;
+    inputPutNombre.value = data.name;
+    inputPutApellido.value = data.lastname;
+    modal.show();
+  } catch (error) {
+    console.log(error);
+    alertaError();
+  }
 });
 
 //verificacion que los campos del modal no esten vacios
@@ -113,17 +129,24 @@ modificarBtn.addEventListener("click", async () => {
 
 //método put en el modal que modifica los valores
 guardarCambiosBtn.addEventListener("click", async () => {
-  const resModificar = await fetch(urlUsers + inputPutId.value, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: inputPutNombre.value,
-      lastname: inputPutApellido.value,
-    }),
-  });
-  mostrarObjetos("");
+  try {
+    const resModificar = await fetch(urlUsers + inputPutId.value, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: inputPutNombre.value,
+        lastname: inputPutApellido.value,
+      }),
+    });
+    if (!resModificar.ok) {
+      throw new Error("Something went wrong.");
+    }
+    mostrarObjetos("");
+  } catch {
+    alertaError();
+  }
 });
 
 //verificacion del campo completo para poder eliminar
@@ -133,8 +156,16 @@ inputDelete.addEventListener("input", () => {
 
 //método delete
 eliminarBtn.addEventListener("click", async () => {
-  const resEliminar = await fetch(urlUsers + inputDelete.value, {
-    method: "DELETE",
-  });
-  mostrarObjetos("");
+  try {
+    const resEliminar = await fetch(urlUsers + inputDelete.value, {
+      method: "DELETE",
+    });
+    if (!resEliminar.ok) {
+      throw new Error("Something went wrong.");
+    }
+    mostrarObjetos("");
+    inputDelete.value = "";
+  } catch {
+    alertaError();
+  }
 });
